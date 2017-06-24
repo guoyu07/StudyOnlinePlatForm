@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:task="http://www.springframework.org/schema/task"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+       xmlns:jee="http://www.springframework.org/schema/jee"  
+       xmlns:p="http://www.springframework.org/schema/p" 
+       xmlns:redis="http://www.springframework.org/schema/redis" 
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+            http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+            http://www.springframework.org/schema/context
+            http://www.springframework.org/schema/context/spring-context-4.0.xsd
+            http://www.springframework.org/schema/task
+			http://www.springframework.org/schema/task/spring-task-4.0.xsd
+			http://www.springframework.org/schema/tx
+			http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+			http://www.springframework.org/schema/data/jpa
+			http://www.springframework.org/schema/data/jpa/spring-jpa-1.3.xsd
+			http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee.xsd			
+			http://www.springframework.org/schema/redis
+			http://www.springframework.org/schema/redis/spring-redis-1.0.xsd
+			">		
+	<!--开启spring注解  -->		
+    <context:annotation-config />
+    <!-- 开启扫描包，@Controller排除在外因为这部分属于springMVC上下文 -->
+    <context:component-scan base-package="indi.jack">
+        <context:exclude-filter type="annotation"
+                expression="org.springframework.stereotype.Controller" />
+    </context:component-scan>
+    <!-- 启用异步支持  ThreadPoolTaskScheduler既是执行器也是调度器 -->
+    <task:annotation-driven executor="taskScheduler" scheduler="taskScheduler"  ></task:annotation-driven>
+	<bean id="taskScheduler" class="org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler" >
+		    <property name="poolSize" value="20"/>
+		    <property name="threadNamePrefix" value="task-"/>
+		    <property name="awaitTerminationSeconds" value="60"/>
+		    <property name="waitForTasksToCompleteOnShutdown" value="true"/>
+	 </bean>
+	
+    <!-- 配置xml编码和解码,对所有实体进行编码解码 -->
+    <bean id="Jaxb2Marshaller" class="org.springframework.oxm.jaxb.Jaxb2Marshaller">
+    	<property name="packagesToScan" value="indi.jack.entity"></property>
+    </bean>
+    <!-- 配置消息源 -->
+    <bean id="messageSource" class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
+    	<property name="basenames">
+    		<list>
+    			<value>/WEB-INF/i18n/messages</value>
+    			<value>/WEB-INF/i18n/errors</value>
+    			<value>/WEB-INF/i18n/titles</value>
+    			<value>/WEB-INF/i18n/validation</value>
+    		</list>
+    	</property>
+    	<!-- <property name="cacheSeconds">
+    		<value>1000</value>
+    	</property> -->
+    	<property name="defaultEncoding">
+    		<value>UTF-8</value>
+    	</property>
+    </bean>
+   
+    <!-- 配置bean验证工厂 -->
+	<bean id="validatorFactory" class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean">
+		<!-- <property name="providerClass" value="org.hibernate.validator.HibernateValidator"></property> -->
+			<!--  可以直接使用全局消息源 -->
+			<property name="validationMessageSource" ref="messageSource"></property>
+	</bean>
+	<!-- 配置方法验证bean后处理器  对执行方法的返回结果进行验证-->
+	<bean id="methodValidationPostProcessor" class="org.springframework.validation.beanvalidation.MethodValidationPostProcessor">
+		<property name="validator"  ref="validatorFactory"></property>
+	</bean>
+	
+	 <!-- 配置数据源 -->
+	<!-- <bean id="dataSource" class="org.springframework.jndi.JndiObjectFactoryBean">        
+        <property name="jndiName" value="java:comp/env/jdbc/SpringJpa"/>        
+	</bean> -->
+	<!-- 使用jee标签需要导入对应的xsd -->	
+	<jee:jndi-lookup  jndi-name="java:comp/env/jdbc/MinerOnline" id="dataSource"></jee:jndi-lookup>
+
+	<!-- 配置JPA提供者   设置hibernate属性-->
+	<bean id="hibernateJpaVendorAdapter" class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
+		<property name="databasePlatform" value="org.hibernate.dialect.MySQL5InnoDBDialect"></property>
+		<property name="generateDdl" value="true"></property>
+		<property name="showSql" value="true"></property>
+	</bean>
+	<!-- 使用hibernate的sessionfactory而不是jpa -->
+	<!-- <bean id="sessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean" lazy-init="false">
+        注入datasource，给sessionfactoryBean内setdatasource提供数据源
+        <property name="dataSource" ref="dataSource" />
+        指定Entity实体类包路径 注意这个路径问题  会自动扫描@entity
+        <property name="packagesToScan" >  
+                <array>
+                  <value>indi.jack.entity</value>
+                </array>		    
+        </property>
+        <property name="configLocation" value="classpath:hibernate.cfg.xml"></property>
+    </bean>  -->
+    <!-- 延迟加载配置 -->
+    <bean name="openEntityManagerInViewInterceptor"  
+	    class="org.springframework.orm.jpa.support.OpenEntityManagerInViewInterceptor">  
+	    <property name="entityManagerFactory">  
+	        <ref bean="entityManagerFactory" />  
+	    </property>  
+	</bean> 
+	<!-- 定义实体管理器工厂Jpa配置   LocalContainerEntityManagerFactoryBean这个选项Spring扮演了容器的角色。完全掌管JPA -->  
+    <bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+           <!-- 指定数据源 -->
+        <property name="dataSource" ref="dataSource"/>
+        <property name="persistenceUnitName" value="SpringJpa"></property>
+        <!-- 指定Jpa持久化实现厂商类,以Hibernate为实现 -->
+        <property name="jpaVendorAdapter" ref="hibernateJpaVendorAdapter"/>
+      <!--   指定Entity实体类包路径 注意这个路径问题  会自动扫描@entity -->
+        <property name="packagesToScan" >  
+                <array>
+                  <value>indi.jack.entity</value>
+                </array>		    
+        </property>
+       <!--  设置jpa属性集合 -->
+        <property name="jpaPropertyMap">
+        	<map>
+        		<!-- 配置hibernate Search索引存放地址 -->
+        		<entry key="hibernate.search.default.directory_provider" value="filesystem"/>
+        		<entry key="hibernate.search.default.indexBase" value="D:/logs/searchIndexes"/>
+        		<!-- <entry key="hibernate.search.analyzer" value="org.apache.lucene.analysis.cn.smart.SmartChineseAnalyzer"/> -->
+        	</map>
+        </property>
+    </bean>
+    <!-- 开启注解事务  必须在异步配置之后-->
+    <tx:annotation-driven transaction-manager="transactionManager" order="3" />
+    
+    <!-- Jpa 事务管理器  -->
+    <bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+        <property name="entityManagerFactory" ref="entityManagerFactory"/>
+    </bean>
+    <!-- hibernate事务管理 -->
+    <!-- <bean id="transactionManager" class="org.springframework.orm.hibernate4.HibernateTransactionManager">
+        <property name="sessionFactory" ref="sessionFactory"></property>
+    </bean>  -->
+    <!-- 事务 -->
+    <tx:advice id="txAdvice" transaction-manager="transactionManager">
+    	<tx:attributes>
+    		<tx:method name="query*" read-only="true" propagation="REQUIRED" />
+            <tx:method name="find*" read-only="true" propagation="REQUIRED" />
+            <tx:method name="*" propagation="REQUIRED" />
+    	</tx:attributes>
+    </tx:advice>
+    <!-- 配置spring redis -->
+    <bean id="jedisConnectionFactory"  
+        class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory"  
+        destroy-method="destroy">  
+        <property name="hostName" value="127.0.0.1" />  
+        <property name="port" value="6379" />  
+        <property name="timeout" value="15000" />  
+        <property name="database" value="0" />  
+        <property name="password" value="" />  
+        <property name="usePool" value="true" />  
+        <property name="poolConfig" ref="jedisPoolConfig" />  
+    </bean>
+	<bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">  
+        <property name="maxTotal" value="10"></property>  
+        <property name="maxIdle" value="10"></property>  
+        <property name="minIdle" value="2"></property>  
+        <property name="maxWaitMillis" value="15000"></property>  
+        <property name="minEvictableIdleTimeMillis" value="300000"></property>  
+        <property name="numTestsPerEvictionRun" value="3"></property>  
+        <property name="timeBetweenEvictionRunsMillis" value="60000"></property>  
+        <property name="testOnBorrow" value="true"></property>  
+        <property name="testOnReturn" value="true"></property>  
+        <property name="testWhileIdle" value="true"></property>  
+    </bean>
+	<!-- redis template definition p表示对该bean里面的属性进行注入，格式为p:属性名=注入的对象 效果与在bean里面使用<property>标签一样 -->  
+    <bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate"  
+        p:connection-factory-ref="jedisConnectionFactory">  
+        <!-- 序列化方式 建议key/hashKey采用StringRedisSerializer。 -->  
+	        <property name="keySerializer">  
+	            <bean  
+	                class="org.springframework.data.redis.serializer.StringRedisSerializer" />  
+	        </property>  
+	        <property name="hashKeySerializer">  
+	            <bean  
+	                class="org.springframework.data.redis.serializer.StringRedisSerializer" />  
+	        </property>  
+	        <property name="valueSerializer">  
+	            <bean  
+	                class="org.springframework.data.redis.serializer.JdkSerializationRedisSerializer" />  
+	        </property>  
+	        <property name="hashValueSerializer">  
+	            <bean  
+	                class="org.springframework.data.redis.serializer.JdkSerializationRedisSerializer" />  
+	        </property>
+	        <property name="enableTransactionSupport" value="true" />  
+    	</bean>  
+    	<!-- 对string操作的封装 -->  
+    <bean id="stringRedisTemplate" class="org.springframework.data.redis.core.StringRedisTemplate"  
+        p:connection-factory-ref="jedisConnectionFactory" />  
+	<!--<bean id="cacheManager" class="org.springframework.data.redis.cache.RedisCacheManager" c:template-ref="redisTemplate"/> -->
+     <!-- <bean id="jdkSerializer" class="org.springframework.data.redis.serializer.JdkSerializationRedisSerializer" />    
+     <bean id="delegate" class="indi.jack.testserviceImpl.MyMessageDelegate" /> -->
+     <!-- <bean id="messageListener"
+		class="org.springframework.data.redis.listener.adapter.MessageListenerAdapter">
+		<property name="delegate" ref="delegate"></property>
+	 </bean> -->
+   	 <!-- <redis:listener-container connection-factory="jedisConnFactory">
+   	 	<redis:listener ref="messageListener" serializer="jdkSerializer"  topic="hello"/>
+   	 </redis:listener-container> -->	
+   
+    <!-- 配置AOP -->
+    <!-- <aop:config proxy-target-class="true">
+        <aop:pointcut expression="execution(* *..service..*Service*.*(..))" id="serviceMethod" />
+        <aop:advisor advice-ref="txAdvice" pointcut-ref="serviceMethod" />
+    </aop:config> -->
+    <!-- spring data jpa 仓库配置：启用扫描并自动创建代理的功能  -->
+    <jpa:repositories base-package="indi.jack.dao"  transaction-manager-ref="transactionManager" entity-manager-factory-ref="entityManagerFactory"/>
+	<!-- 自定义用户细节服务 -->
+    <bean id="myUserdetails" class="indi.jack.serviceImpl.UserPrincipalServiceImpl"></bean>
+    <!-- 配置用户登录成功处理器 -->
+    <bean id="authenticationSuccessHandler" class="indi.jack.serviceImpl.UserAuthenticateSuccessHandler"></bean>
+    <!-- 配置用户登录失败处理器 -->
+    <bean id="authenticationFailureHandler" class="indi.jack.serviceImpl.UserAuthenticateFailureHandler"></bean>
+	<!-- 导入spring security安全框架配置文件 -->
+	<import resource="springSecurity.xml"/>	
+    
+    
+    
+	<!-- 配置时间和日期格式化 -->
+	 <!-- <bean id="conversionService" class="org.springframework.format.support.FormattingConversionServiceFactoryBean">
+        <property name="registerDefaultFormatters" value="false" />
+        <property name="formatters">
+            <set>
+                <bean class="org.springframework.format.number.NumberFormatAnnotationFormatterFactory" />
+            </set>
+        </property>
+        <property name="formatterRegistrars">
+            <set>
+                <bean class="org.springframework.format.datetime.joda.JodaTimeFormatterRegistrar">
+                    <property name="dateFormatter">
+                        <bean class="org.springframework.format.datetime.joda.DateTimeFormatterFactoryBean">
+                            <property name="pattern" value="yyyyMMdd"/>
+                        </bean>
+                    </property>
+                </bean>
+            </set>
+        </property>
+      </bean> -->
+</beans>

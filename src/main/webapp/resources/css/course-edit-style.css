@@ -1,0 +1,76 @@
+.ztree *{
+				font-size: 14px;				
+			}
+			.wrapper{
+				padding-left: 20%;
+			}
+			.side-nav {
+		        position:fixed ;
+		        left: 20%;
+        		width: 20%;        		
+        		margin-left: -20%;
+		        top: 38px;
+		        overflow-y:auto;
+		        bottom: 32px;
+		        overflow-x:auto;
+		        padding-bottom: 40px;
+		        padding-top: 10px;
+		        border:1px solid #269ABC;
+		        border-top: none;
+        		border-radius: 0;
+		    }
+		    .side-nav-title{
+		    	position:fixed;
+		        left: 20%;
+        		width: 20%;
+        		margin-left: -20%;
+        		background-color: #269ABC;
+		        top: 0px;
+		        height: 38px;
+
+		    }
+		    .side-nav-savebtn{
+		    	position:fixed ;
+		        left: 20%;
+        		width: 20%;
+        		margin-left: -20%;
+        		bottom: 0px;
+        		background-color: #269ABC;
+		    }
+		    .panel-title{
+		    	text-align: center;
+		    }
+		    .rightpanel{		    	
+		    	width: 100%;
+			   /* background-color: #00B83F;*/
+			    margin-top: 38px;
+			    padding:10px;
+		    }
+		    .rightpanel-title{
+		    	position:fixed;
+		    	width: 80%;
+		    	top: 0;
+		    	height: 38px;
+		    	background-color:#269ABC ;
+		    	z-index: 100;
+		    	/*right: 80%;
+		    	margin-right: 80%;*/
+		    }
+		    .operation-tabs{
+		    	
+		    }
+		    .operation-content{
+		    	
+		    }
+		    .nav-tabs>li.active>a,
+			.nav-tabs>li.active>a:focus,
+			.nav-tabs>li.active>a:hover {
+				color: #555;
+				cursor: default;
+				background-color: #fff;
+				border: 1px solid #ddd;
+				border-bottom-color: transparent
+			}
+			li i{
+				margin-left: 5px;
+			}

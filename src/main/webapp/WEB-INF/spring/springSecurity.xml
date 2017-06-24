@@ -1,0 +1,57 @@
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+  xmlns:beans="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+           http://www.springframework.org/schema/security
+           http://www.springframework.org/schema/security/spring-security-3.2.xsd">
+	 
+	  <global-method-security  pre-post-annotations="enabled" order="0" ></global-method-security>
+	  <authentication-manager>
+		  <authentication-provider user-service-ref="myUserdetails">
+		  	<password-encoder hash="bcrypt" >
+		  	</password-encoder>
+		  </authentication-provider>
+	  </authentication-manager>
+	  <http security="none" pattern="/css/***"></http>
+	  <http security="none" pattern="/js/***"></http>
+	  <http security="none" pattern="/error/404.html"></http>
+	  <!-- <http security="none" pattern="/"></http> -->
+	  <http use-expressions="true">
+	  	  <session-management session-authentication-error-url="/error/404.html">
+	  	  		<concurrency-control max-sessions="1" error-if-maximum-exceeded="true"/>
+	  	  </session-management>
+	  	  
+		  <intercept-url pattern="/error/**" access="hasRole('ROLE_TEACHER')" requires-channel="any"/>
+		  <intercept-url pattern="/tes" access="hasAuthority('DELETE_PPT')"  requires-channel="any"/>
+		  <intercept-url pattern="/" access="permitAll"/>
+		  <intercept-url pattern="/teacher" access="hasRole('ROLE_TEACHER')"/>
+		  <intercept-url pattern="/study" access="hasRole('ROLE_STUDENT')"/>
+		  <intercept-url pattern="/admin" access="hasAnyRole('ROLE_SCHOOL_ADMIN','ROLE_SITE_ADMIN')"/>
+		  <!-- authentication-failure-url="/login?error" -->
+		  <form-login  login-page="/login" authentication-failure-handler-ref="authenticationFailureHandler"  login-processing-url="/login_process"
+		  	    authentication-success-handler-ref="authenticationSuccessHandler"  username-parameter="username" password-parameter="password"
+		   />
+		   <!-- <csrf/> -->
+		  <logout logout-url="/logout"  delete-cookies="JSESSIONID" invalidate-session="true" logout-success-url="/" />
+		  
+	  </http>
+	 <!-- <authentication-manager>
+	 	<authentication-provider>
+	 		<user-service>
+	 			<user name="jack" authorities="UESR" password="123456"/>
+	 			<user name="guofeng" authorities="USER,ADMIN"	password="123456"/>
+	 		</user-service>
+	 	</authentication-provider>
+	 </authentication-manager>
+	 <http security="none" pattern="/resources/***"></http>
+	 <http use-expressions="true" >
+	 	<intercept-url pattern="/test" access="hasAuthority('USER')" />
+	 	<access-denied-handler error-page="/error/404.html" />
+	 	<form-login login-page="/login" login-processing-url="/login"
+	 		default-target-url="/secure/" authentication-failure-url="/login?error"
+	 		username-parameter="username" password-parameter="password" />
+	 	<logout logout-url="/logout" logout-success-url="/login?loggedOut" invalidate-session="true" delete-cookies="JSESSIONID"/>
+	 </http> -->
+	 
+</beans:beans>

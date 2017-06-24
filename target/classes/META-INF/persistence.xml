@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence xmlns="http://xmlns.jcp.org/xml/ns/persistence"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence
+        http://xmlns.jcp.org/xml/ns/persistence/persistence_2_1.xsd"
+             version="2.1">
+
+    <persistence-unit name="SpringJpa" transaction-type="RESOURCE_LOCAL">
+        <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+        <!-- <class>indi.jack.entity.AccountInfo</class>
+        <class>indi.jack.entity.CourseCategory</class>
+        <class>indi.jack.entity.CourseType</class>
+        <class>indi.jack.entity.StudentClass</class>
+        <class>indi.jack.entity.ClassCourseTree</class>
+        <class>indi.jack.entity.Class</class>
+        <class>indi.jack.entity.CourseEntity</class>
+        <class>indi.jack.entity.TeachResource</class> -->
+        <!-- <non-jta-data-source>
+            java:comp/env/jdbc/SpringJpa
+        </non-jta-data-source> -->
+        <exclude-unlisted-classes>false</exclude-unlisted-classes>
+        <shared-cache-mode>ENABLE_SELECTIVE</shared-cache-mode>
+        <validation-mode>NONE</validation-mode>
+        <properties>
+        	<property name="hibernate.dialect" value="org.hibernate.dialect.MySQL5Dialect" /> 
+            <property name="javax.persistence.schema-generation.database.action"
+                      value="none" />
+            <property name="hibernate.show_sql" value="true" />
+        </properties>
+    </persistence-unit>
+
+</persistence>

@@ -1,0 +1,27 @@
+@CHARSET "UTF-8";
+.price {
+				display: block;
+				font-size: 50px;
+				line-height: 50px;
+			}
+			
+			.price sup {
+				top: -20px;
+				left: 2px;
+				font-size: 20px;
+			}
+			.list-group{
+				margin-bottom: 0px;
+			}
+			.list-group-item{
+			}
+			.list-group-item:first-child{
+				border-radius: 0px;
+			}
+			.panel-default > .panel-heading{
+				background-color: #e88b8b;
+    			border-color: #e88b8b;
+			}
+			.panel-heading a:hover, a:focus{
+				text-decoration:none ;
+			}

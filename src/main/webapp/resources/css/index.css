@@ -1,0 +1,29 @@
+body {
+  padding-top: 58px;
+}
+.navbar-fixed-top {
+  border: 0;
+}
+.navbar {
+  background-color:#333333;
+  padding-right: 30px;
+}
+#navtop a{
+  color: white;
+}
+#navtop a:hover {
+  background-color: #00CC00;
+}
+#navtop a:visited {
+  background-color: #00CC00;
+}
+#navtop .dropdown-menu{
+  background-color: #777;
+}
+
+/*#carousel {
+  height: 370px;
+}
+#carouselMenu {
+  height: 370px;
+}*/
