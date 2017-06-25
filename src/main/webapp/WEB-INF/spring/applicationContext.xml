@@ -76,8 +76,9 @@
         <property name="jndiName" value="java:comp/env/jdbc/SpringJpa"/>        
 	</bean> -->
 	<!-- 使用jee标签需要导入对应的xsd -->	
-	<jee:jndi-lookup  jndi-name="java:comp/env/jdbc/MinerOnline" id="dataSource"></jee:jndi-lookup>
-
+	<!-- <jee:jndi-lookup  jndi-name="java:comp/env/jdbc/MinerOnline" id="dataSource"></jee:jndi-lookup> -->
+	<!-- 阿里数据源连接池 -->
+	<import resource="springDruid.xml" />
 	<!-- 配置JPA提供者   设置hibernate属性-->
 	<bean id="hibernateJpaVendorAdapter" class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
 		<property name="databasePlatform" value="org.hibernate.dialect.MySQL5InnoDBDialect"></property>
